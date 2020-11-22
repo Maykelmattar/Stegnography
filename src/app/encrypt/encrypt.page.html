@@ -1,0 +1,39 @@
+<ion-content fullscreen="true">
+
+    <ion-card class="card first-card">
+        <ion-input type='text' placeholder='Enter Your plain text...' name='plain' #plain></ion-input>
+    </ion-card>
+    <ion-grid>
+        <ion-row>
+            <ion-col col-6>
+                <ion-card class="card-key">
+                    <ion-input type='text' placeholder='Enc key...' name='key' #key></ion-input>
+                </ion-card>
+            </ion-col>
+
+            <ion-col col-6>
+                <ion-card class="card-key">
+                    <ion-input type='text' placeholder='Image key...' name='imageKey' #imageKey></ion-input>
+                </ion-card>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+
+    <ion-button [disabled]="plain.value==='' || key.value==='' || imageKey.value===''" expand="block" color="#16A085" shape="round" fill="outline" class="encrypt" (click)="encrypt()">
+        <ion-icon slot="start" name="lock-closed"></ion-icon>
+
+        Proceed</ion-button>
+    <ion-card class="card result" [innerHTML]="result">
+    </ion-card>
+    <hr>
+    <span align="center" class="canvas-centered">
+<h6 *ngIf="showdownload">Original</h6>
+<canvas id="canvas"></canvas>
+<h6 *ngIf="showdownload">Result</h6>
+
+    <canvas id="canvasEdited"></canvas>
+</span>
+    <ion-button *ngIf="showdownload" expand="block" color="dark" shape="round" fill="outline" class="encrypt" (click)="downloadResult()">
+        <ion-icon slot="start" name="cloud-download-outline"></ion-icon>
+        Download</ion-button>
+</ion-content>

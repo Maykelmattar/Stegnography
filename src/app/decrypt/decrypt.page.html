@@ -1,0 +1,32 @@
+<ion-content fullscreen="true">
+    <ion-grid>
+        <ion-row>
+            <ion-col col-6>
+                <ion-card class="card-key">
+                    <ion-input type='text' placeholder='Dec key...' name='key' #key></ion-input>
+                </ion-card>
+            </ion-col>
+
+            <ion-col col-6>
+                <ion-card class="card-key">
+                    <ion-input type='text' placeholder='Image key...' name='imageKey' #imageKey></ion-input>
+                </ion-card>
+            </ion-col>
+        </ion-row>
+    </ion-grid>
+    <ion-button expand="block" [disabled]=" key.value==='' || imageKey.value===''" shape="round" fill="outline" class="hide" (click)="loadImage()">
+        <ion-icon slot="start" name="lock-open-outline"></ion-icon>
+        Proceed</ion-button>
+    <span align="center" class="canvas-centered">
+        <h6 *ngIf="myphoto">
+            Image
+        </h6>
+    <canvas id="canvas"></canvas>
+        </span>
+
+    <p id="result" class="result"></p>
+
+    <input type="file" id="filePicker" class="hidden" (change)="handleFileSelect($event)">
+
+
+</ion-content>
