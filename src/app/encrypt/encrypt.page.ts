@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { ViewChild } from '@angular/core';
-import { FileChooser } from '@ionic-native/file-chooser/ngx';
-import { FilePath } from '@ionic-native/file-path/ngx';
 import { Camera, CameraOptions } from '@ionic-native/camera/ngx';
 import { Base64ToGallery } from '@ionic-native/base64-to-gallery/ngx';
 import { AndroidPermissions } from '@ionic-native/android-permissions/ngx';
@@ -16,7 +14,6 @@ export class EncryptPage implements OnInit {
   hasWriteAccess: boolean = false;
 
   @ViewChild("plain") plain;
-  title: string = "Encrypt";
   myphoto: any;
   binaryResult: '';
   s = [];
@@ -28,7 +25,7 @@ export class EncryptPage implements OnInit {
   canvas;
   loading: any;
   context;
-  constructor(private camera: Camera, private fileChooser: FileChooser, private androidPermissions: AndroidPermissions, private filePath: FilePath, private base64ToGallery: Base64ToGallery,public loadingController: LoadingController) {
+  constructor(private camera: Camera, private androidPermissions: AndroidPermissions, private base64ToGallery: Base64ToGallery,public loadingController: LoadingController) {
 
   }
   checkPermissions() {
@@ -85,16 +82,15 @@ export class EncryptPage implements OnInit {
       this.s[i] = temp;
       t = (this.s[i] + this.s[j]) % 256;
       k = this.s[t];
+      //XOR the key with the first character 
       this.result += String.fromCharCode(k ^ plaintext.charCodeAt(c));
       this.binaryResult += ' ' + ("00000000" + Number(k ^ plaintext.charCodeAt(c)).toString(2)).slice(-8)
       console.log(k);
 
     }
-
-
-    console.log('solution');
+    console.log('Cipher Text');
     console.log(this.result);
-    this.openCamera(this.binaryResult + this.StringToBinary( "#cyb560#" + this.imageKey.value +"#cyb560#") )
+    this.openCamera(this.binaryResult + this.StringToBinary( "#cyb560#" + this.imageKey.value +"#cyb560#") ) //Open the camera with image key 
   }
   openCamera(text) {
 
@@ -115,21 +111,7 @@ export class EncryptPage implements OnInit {
       });
   }
 
-  openGallery() {
-    const options: CameraOptions = {
-      quality: 20,
-      destinationType: this.camera.DestinationType.FILE_URI,
-      sourceType: this.camera.PictureSourceType.PHOTOLIBRARY,
-      saveToPhotoAlbum: false
-    }
-    this.camera.getPicture(options).then((imageData) => {
 
-      this.myphoto = 'data:image/jpeg;base64,' + imageData;
-    },
-      (err) => {
-        // Handle error
-      });
-  }
 
   ngOnInit() {
     this.checkPermissions();
@@ -143,6 +125,7 @@ export class EncryptPage implements OnInit {
     }
     return returnValueBinary
   }
+  //Hide the text inside the image
 async hideImage (imageData,text){
   const loading = await this.loadingController.create({
     cssClass: 'my-custom-class',
@@ -150,6 +133,7 @@ async hideImage (imageData,text){
   });
   await loading.present();
   this.myphoto = 'data:image/png;base64,' + imageData;
+ //Get the Image base64
       var img = new Image();
       img.src = this.myphoto;
       var canvas = document.getElementById('canvas') as HTMLCanvasElement;
@@ -157,36 +141,44 @@ async hideImage (imageData,text){
       var ctx = canvas.getContext('2d');
       var arr = [];
       img.onload = function () {
-        // ctx.drawImage(img, 0, 0);
+        //Draw the image in the canvas
         ctx.drawImage(img, 0, 0, img.width, img.height,
           0, 0, canvas.width, canvas.height);
+          //Get the pixel data
         var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-
+      // Edit and modify the pixel in a way to hide the text in the image 
         editPixels(imageData.data);
           console.log(imageData.data)
+          //Draw the new image in the second canvas
         drawEditedImage(imageData);
 
       };
 
       function editPixels(imgData) {
-     //   console.log(imgData)
         let rgbPixel = []
+        //Pixel array is 1D array
+        //Loop the pixel array till the text length is reached
         for (let i = 0; i < text.replace(/ /g, "").length; i++) {
-          let firstIndex = (i * 3)
+          let firstIndex = (i * 3) //Get the first index of the current pixel 
           let currentPixel = [];
-          // if (i === 0) {
+          //Get the current pixel RGB
             currentPixel = [imgData[firstIndex], imgData[firstIndex + 1], imgData[firstIndex + 2]]
-          // } else {
-          //   currentPixel = rgbPixel[rgbPixel.length - 1]
-          // }
-          let nextPixel = [imgData[(firstIndex + 3)], imgData[(firstIndex + 3) + 1], imgData[(firstIndex + 3) + 2]]
-          if (Math.abs(((Number(getMax(nextPixel).max) - Number(getMax(currentPixel).max)) % 2)) !== Number(text.replace(/ /g, "")[i])) {
-            nextPixel[getMax(nextPixel).maxIndex] = nextPixel[getMax(nextPixel).maxIndex] + 1
+            //Get the next pixel RGB   
+            let nextPixel = [imgData[(firstIndex + 3)], imgData[(firstIndex + 3) + 1], imgData[(firstIndex + 3) + 2]]
+            //Check if (the dominant color in the next pixel - the dominant color in the current pixel) are odd or even 
+              if (Math.abs(((Number(getMax(nextPixel).max) - Number(getMax(currentPixel).max)) % 2)) !== Number(text.replace(/ /g, "")[i])) {
+           //if the difference % 2 is different than the current binary modify it 
             if (imgData[getMax(nextPixel).maxIndex + (firstIndex + 3)] === 255) {
+              // if the dominant is equal to 255 wich is the max do a minus but on all RGB so the max index won't change
+              nextPixel[(firstIndex )] = nextPixel[(firstIndex )] - 1;
+              nextPixel[1+(firstIndex )] = nextPixel[1+(firstIndex )] - 1;
+              nextPixel[2+(firstIndex )] = nextPixel[2+(firstIndex )] - 1;
               imgData[(firstIndex + 3)] = imgData[(firstIndex + 3)] - 1;
               imgData[1 + (firstIndex + 3)] = imgData[1 + (firstIndex + 3)] - 1;
               imgData[2 + (firstIndex + 3)] = imgData[2 + (firstIndex + 3)] - 1;
             } else {
+              //Add 1 to the next pixel dominant color
+              nextPixel[getMax(nextPixel).maxIndex] = nextPixel[getMax(nextPixel).maxIndex] + 1           
               imgData[getMax(nextPixel).maxIndex + (firstIndex + 3)] = imgData[getMax(nextPixel).maxIndex + (firstIndex + 3)] + 1
             }
           }
@@ -201,9 +193,6 @@ async hideImage (imageData,text){
       function drawEditedImage(newData) {
         var ctxEdited = canvasEdited.getContext('2d');
         ctxEdited.putImageData(newData, 0, 0);
-     //   console.log(newData)
-      //  console.log(canvasEdited.toDataURL());
-
       }
       function getMax(array) {
         let max = 0, maxIndex = 0
@@ -222,9 +211,7 @@ async hideImage (imageData,text){
 }
 downloadResult(){
   var canvasEdited = document.getElementById('canvasEdited') as HTMLCanvasElement;
-
-
-let  image = canvasEdited.toDataURL()//.replace("image/png", "image/octet-stream");
+let  image = canvasEdited.toDataURL()
 
 this.base64ToGallery.base64ToGallery(image).then(
     res => alert( "Downloaded to "+ res),
